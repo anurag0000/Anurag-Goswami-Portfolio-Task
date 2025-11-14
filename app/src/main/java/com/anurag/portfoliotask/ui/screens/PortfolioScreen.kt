@@ -54,6 +54,7 @@ fun PortfolioScreen(viewModel: PortfolioViewModel = hiltViewModel()) {
     Column(
         Modifier
             .fillMaxSize()
+            .background(Color.White)
     ) {
         Column(modifier = Modifier.background(Color.White)) {
             TabRow(
