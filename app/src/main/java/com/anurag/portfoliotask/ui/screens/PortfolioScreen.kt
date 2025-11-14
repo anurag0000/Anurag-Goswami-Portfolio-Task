@@ -1,6 +1,7 @@
 package com.anurag.portfoliotask.ui.screens
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import com.anurag.portfoliotask.domain.model.Holding
 import com.anurag.portfoliotask.domain.model.PortfolioSummary
 import com.anurag.portfoliotask.ui.viewmodel.PortfolioViewModel
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.ui.Alignment
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.nio.file.WatchEvent
 import kotlin.math.abs
 
 
@@ -52,21 +55,53 @@ fun PortfolioScreen(viewModel: PortfolioViewModel = hiltViewModel()) {
         Modifier
             .fillMaxSize()
     ) {
-        TabRow(
-            selectedTabIndex = if (selectedTab == "Positions") 0 else 1,
-            containerColor = Color.White,
-            contentColor = Color(0xFF0A2A66)
-        ) {
-            Tab(
-                selected = selectedTab == "Positions",
-                onClick = { selectedTab = "Positions" },
-                text = { Text("POSITIONS") }
-            )
-            Tab(
-                selected = selectedTab == "Holdings",
-                onClick = { selectedTab = "Holdings" },
-                text = { Text("HOLDINGS") }
-            )
+        Column(modifier = Modifier.background(Color.White)) {
+            TabRow(
+                selectedTabIndex = if (selectedTab == "Positions") 0 else 1,
+                containerColor = Color.White,
+                contentColor = Color.DarkGray,
+                indicator = { tabPositions ->
+                    Box(
+                        modifier = Modifier
+                            .tabIndicatorOffset(tabPositions[if (selectedTab == "Positions") 0 else 1])
+                            .fillMaxWidth()
+                            .padding(horizontal = 64.dp)
+                    ) {
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = Color.DarkGray
+                        )
+                    }
+                },
+                divider = {}
+            ) {
+                Tab(
+                    selected = selectedTab == "Positions",
+                    onClick = { selectedTab = "Positions" },
+                    text = {
+                        Text(
+                            "POSITIONS",
+                            fontSize = 14.sp,
+                            fontWeight = if (selectedTab == "Positions") FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedTab == "Positions") Color.DarkGray else Color.Gray
+                        )
+                    }
+                )
+                Tab(
+                    selected = selectedTab == "Holdings",
+                    onClick = { selectedTab = "Holdings" },
+                    text = {
+                        Text(
+                            "HOLDINGS",
+                            fontSize = 14.sp,
+                            fontWeight = if (selectedTab == "Holdings") FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedTab == "Holdings") Color.DarkGray  else Color.Gray
+                        )
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
         }
 
         when {
@@ -110,7 +145,8 @@ fun PortfolioScreen(viewModel: PortfolioViewModel = hiltViewModel()) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 8.dp)
+                                .background(Color.White)
+                                .padding(horizontal = 2.dp)
                         ) {
                             PullToRefreshBox(
                                 state = pullRefreshState,
@@ -141,7 +177,7 @@ fun PortfolioScreen(viewModel: PortfolioViewModel = hiltViewModel()) {
                     }
 
                     "Positions" -> {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(Modifier.fillMaxSize().background(Color.White), contentAlignment = Alignment.Center) {
                             Text("Positions feature coming soon")
                         }
                     }
@@ -217,7 +253,9 @@ fun SummaryCard(
             .animateContentSize(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE0E0E0)
+        )
     ) {
         Column(Modifier.padding(16.dp)) {
             if (expanded) {
