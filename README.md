@@ -65,7 +65,7 @@ com.anurag.portfoliotask/
 Prerequisites
 Android Studio Hedgehog | 2023.1.1 or later
 Minimum SDK: 21
-Target SDK: 34
+Target SDK: 35
 JDK 17
 Installation
 Clone the repository
@@ -134,7 +134,7 @@ Check In-Memory Cache
 Check Room Database
     ↓ (if empty)
 Fetch from API
-    ↓
+    ↓ (Always Hits the api in background)
 Update All Caches → Display UI
 📋 Key Features Implementation
 1. Clean Architecture

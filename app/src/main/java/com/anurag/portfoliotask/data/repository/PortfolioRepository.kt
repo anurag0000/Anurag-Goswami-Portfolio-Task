@@ -83,4 +83,24 @@ class PortfolioRepository @Inject constructor(
 
         return holdings to calculator.calculateSummary(holdings)
     }
+
+    suspend fun refreshHoldings(): Pair<List<Holding>, PortfolioSummary>? {
+        return try {
+            val response = api.getHoldings()
+
+            val list = response.data.userHolding
+            if (list.isEmpty()) return null
+
+            val domainList = list.map { it.toDomain() }
+
+            InMemoryCache.holdings = domainList
+            dao.clearAll()
+            dao.insertAll(list.map { it.toEntity() })
+
+            domainList to calculator.calculateSummary(domainList)
+
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

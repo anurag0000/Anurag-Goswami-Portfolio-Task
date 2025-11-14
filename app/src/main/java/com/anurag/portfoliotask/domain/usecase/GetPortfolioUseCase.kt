@@ -11,4 +11,7 @@ class GetPortfolioUseCase @Inject constructor(
     suspend operator fun invoke(): Pair<List<Holding>, PortfolioSummary> {
         return repository.getHoldingsWithSummary()
     }
+    suspend fun refresh(): Pair<List<Holding>, PortfolioSummary>? {
+        return repository.refreshHoldings()
+    }
 }

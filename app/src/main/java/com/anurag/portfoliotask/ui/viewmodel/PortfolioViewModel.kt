@@ -37,12 +37,18 @@ class PortfolioViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
             try {
-                val (list, summary) = getPortfolioUseCase()
+                val (list, summary) = getPortfolioUseCase.invoke()
                 _holdings.value = list
                 _summary.value = summary
+                launch {
+                    val updated = getPortfolioUseCase.refresh()
+                    if (updated != null) {
+                        _holdings.value = updated.first
+                        _summary.value = updated.second
+                    }
+                }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load portfolio"
-                Log.e("PortfolioViewModel", "Error loading portfolio", e)
             } finally {
                 _isLoading.value = false
             }
