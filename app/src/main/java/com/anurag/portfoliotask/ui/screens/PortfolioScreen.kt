@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -153,29 +154,35 @@ fun PortfolioScreen(viewModel: PortfolioViewModel = hiltViewModel()) {
 
 @Composable
 fun HoldingItem(holding: Holding) {
+    val pnlValue = (holding.ltp - holding.avgPrice) * holding.quantity
+    val isProfit = pnlValue >= 0
+    val displayPnlValue = (if (isProfit) "" else "-") +
+            "₹${String.format("%.2f", abs(pnlValue))}"
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(holding.symbol, fontWeight = FontWeight.Bold)
-            Text("Qty: ${holding.quantity}")
+            Row {
+                Text(text = "NET QTY: ",fontSize = 12.sp, color = Color.Gray)
+                Text("${holding.quantity}")
+            }
         }
-        Column(horizontalAlignment = Alignment.End) {
-            Text("LTP: ₹${holding.ltp}")
-            Text(
-                "P&L: ₹${
-                    String.format(
-                        "%.2f",
-                        (holding.ltp - holding.avgPrice) * holding.quantity
-                    )
-                }",
-                color = if ((holding.ltp - holding.avgPrice) >= 0) Color(0xFF2E7D32) else Color(
-                    0xFFC62828
+        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row {
+                Text(text = "LTP: ",fontSize = 12.sp, color = Color.Gray)
+                Text("₹${holding.ltp}")
+            }
+            Row {
+                Text(text = "P&L: ",fontSize = 12.sp, color = Color.Gray)
+                Text(
+                    text = displayPnlValue,
+                    color = if (isProfit) Color(0xFF2E7D32) else Color(0xFFC62828)
                 )
-            )
+            }
         }
     }
 }
@@ -186,6 +193,23 @@ fun SummaryCard(
     expanded: Boolean,
     onExpandToggle: () -> Unit
 ) {
+    val pnl = summary.totalPNL
+    val isProfit = pnl >= 0
+    val investment = summary.totalInvestment
+
+    val pnlText = (if (isProfit) "" else "-") +
+            "₹${String.format("%.2f", abs(pnl))}"
+
+    val percent = if (investment > 0) {
+        String.format("%.2f", (pnl / investment) * 100)
+    } else {
+        "0.00"
+    }
+    val todaysPnl = summary.todaysPNL
+    val isTodaysPnlProfit = todaysPnl >= 0
+
+    val todaysPnlText = (if (isTodaysPnlProfit) "" else "-") +
+            "₹${String.format("%.2f", abs(todaysPnl))}"
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,49 +220,84 @@ fun SummaryCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(Modifier.padding(16.dp)) {
+            if (expanded) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Current value*",
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "₹ ${String.format("%.2f", summary.currentValue)}",
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Total investment*",
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "₹ ${String.format("%.2f", summary.totalInvestment)}",
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Today's Profit & Loss*",
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = todaysPnlText,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp,
+                        color = if (isTodaysPnlProfit) Color(0xFF2E7D32) else Color(0xFFC62828)
+                    )
+                }
+                HorizontalDivider()
+            }
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Profit & Loss*",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp
                     )
                     Spacer(Modifier.width(4.dp))
                     Icon(
                         imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = if (expanded) "Collapse summary" else "Expand summary",
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = Color.Black,
                         modifier = Modifier.size(22.dp)
                     )
                 }
 
                 Text(
-                    text = "₹${String.format("%.2f", summary.totalPNL)} " +
-                            if (summary.totalInvestment > 0) {
-                                "(${
-                                    String.format(
-                                        "%.2f",
-                                        (summary.totalPNL / summary.totalInvestment) * 100
-                                    )
-                                }%)"
-                            } else {
-                                "(0.00%)"
-                            },
+                    text = "$pnlText ($percent%)",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = if (summary.totalPNL >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
+                    color = if (isProfit) Color(0xFF2E7D32) else Color(0xFFC62828)
                 )
-            }
-
-            if (expanded) {
-                Spacer(Modifier.height(8.dp))
-                Text("Current value: ₹${String.format("%.2f", summary.currentValue)}")
-                Text("Total investment: ₹${String.format("%.2f", summary.totalInvestment)}")
-                Text("Today's P&L: ₹${String.format("%.2f", summary.todaysPNL)}")
             }
         }
     }
