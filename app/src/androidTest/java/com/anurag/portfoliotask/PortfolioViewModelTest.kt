@@ -35,22 +35,33 @@ class PortfolioViewModelTest {
     @Test
     fun `loadPortfolioSuccessUpdatesHoldingsAndSummary`() = runTest {
 
-        val holdings = listOf(
+        val initialHoldings = listOf(
             Holding("AAPL", 10, 150.0, 140.0, 148.0)
         )
-        val summary = PortfolioSummary(1500.0, 1400.0, 100.0, 20.0)
-        coEvery { getPortfolioUseCase() } returns Pair(holdings, summary)
+        val initialSummary = PortfolioSummary(1500.0, 1400.0, 100.0, 20.0)
+
+
+        val updatedHoldings = listOf(
+            Holding("AAPL", 12, 160.0, 140.0, 158.0)
+        )
+        val updatedSummary = PortfolioSummary(1920.0, 1680.0, 240.0, 30.0)
+
+        coEvery { getPortfolioUseCase.invoke() } returns Pair(initialHoldings, initialSummary)
+
+        coEvery { getPortfolioUseCase.refresh() } returns Pair(updatedHoldings, updatedSummary)
 
         viewModel.loadPortfolio()
 
         advanceUntilIdle()
 
-        assertEquals(holdings, viewModel.holdings.value)
-        assertEquals(summary, viewModel.summary.value)
+        assertEquals(updatedHoldings, viewModel.holdings.value)
+        assertEquals(updatedSummary, viewModel.summary.value)
+
         assertFalse(viewModel.isLoading.value)
         assertNull(viewModel.error.value)
 
-        coVerify(exactly = 1) { getPortfolioUseCase() }
+        coVerify(exactly = 1) { getPortfolioUseCase.invoke() }
+        coVerify(exactly = 1) { getPortfolioUseCase.refresh() }
     }
 
     @Test
